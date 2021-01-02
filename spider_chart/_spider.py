@@ -5,73 +5,25 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 
-def _adjust_polar_grid(ax, vals, labels, offset, direction, color):
-    ax.set_thetagrids(vals/np.pi*180, labels, color=color)
-    ax.set_theta_offset(np.pi/2+offset)
-    ax.set_theta_direction(direction)
-    ax.set_rlabel_position(0)
-    ax.set_xticklabels(ax.get_xticklabels(), horizontalalignment="center")
-    ax.tick_params(axis="y", which="both", labelsize=8)
-    ax.set_xlabel(None)
-    ax.set_ylabel(None)
-    # Fix title, it's too close.
-    #ax.set_title(ax.get_title(), y=1.2)
-    # Other things (layout, legend, etc.) should be controlled by caller.
-    #plt.tight_layout(True)
-    #ax.legend(loc="upper right", bbox_to_anchor=(1.4, 1.1), borderaxespad=0.)
+def _ensure_axes(ax, enforce):
+    if ax is None:
+        if enforce:
+            ax = plt.subplot(projection="polar")
+        else:
+            ax = plt.gca()
+    if isinstance(ax, mpl.axes.Axes) and ax.name != "polar":
+        msg = ("Axes must use polar projection. Use one of the following "
+               "statements to ensure polar projection:\n"
+               "    plt.gca(polar=True)\n"
+               "    ax = plt.subplot(..., polar=True)\n"
+               "    fig, ax = plt.subplots(subplot_kw={'polar': True})\n"
+               )
+        raise ValueError(msg)
+    return ax
 
 
-def _compute_theta(x, y, data):
-    if data is not None:
-        # If x is col name: get column, else: its a vector.
-        x = data.get(x,x)
-        y = data.get(y,y)
-    if x is None:
-        x = list(range(len(y if y is not None else data)))
-    x = pd.Series(x)
-    x_vals = x.unique()
-    n_axes = len(x_vals)
-    t_vals = np.linspace(0, 2*np.pi, n_axes, endpoint=False)
-    theta = x.map(dict(zip(x_vals, t_vals)))
-    return theta, t_vals, x_vals
-
-
-def spiderplot(x=None, y=None, hue=None, size=None,
-               style=None, extent=None, data=None,
-               fill=True, fillalpha=0.25, fillcolor=None,
-               offset=0., direction=-1,
-               ax=None, _enforce_polar=True, **kwargs):
-    """
-    Create a spider chart with x defining the axes and y the values.
-
-    The function is based on seaborn's lineplot() using a polar projection.
-    The parameters indicated by (*) are specific to spiderplot(). The o
-    For a more detailed documentation of the function arguments, see:
-    https://seaborn.pydata.org/generated/seaborn.lineplot.html
-
-    Arguments:
-        x, y:           Vectors if data is None, else column keys of data.
-        hue:            Vector or key in data. Grouping variable that will
-                        produce lines with different colors.
-        size:           Vector or key in data. Grouping variable that will
-                        produce lines with different widths.
-        style:          Vector or key in data. Grouping variable that will
-                        produce lines with different dashes and/or markers.
-        extent (*):     Vector or constant or key in data. Variable with
-                        the error information per data point. Use this to
-                        indicate error bounds: y±error
-        data:           pandas.DataFrame or None. Data in long- or wide form.
-                        Can be None if the data is provided through x and y.
-        fill (*):       Fill area. Default: enabled
-        fillalpha (*):  Alpha value for fill polygon. Default: 0.25
-        fillcolor (*):  Color for fill polygon. Default: None (automatic)
-        offset (*):     Offset of the polar plot in degree.
-        direction (*):  Either -1 or +1. Plot CW:-1 or CCW:+1. Default: -1.
-        ax:             Pre-existing axes for the plot, if available.
-        **kwargs:       Additional arguments will be forwarded to
-                        sns.lineplot()
-
-    """
+def _format_input_data(x, y, hue, style, data):
+    fmt = "invalid"
     if (y is None and data is None):
         raise ValueError("Arguments y and data cannot both be None.")
     if data is None:
@@ -91,47 +43,56 @@ def spiderplot(x=None, y=None, hue=None, size=None,
         x = "x"
         y = "value"
         hue = "category"
+        fmt = "long"
     elif isinstance(data, pd.Series):
         data.name = "value" if data.name is None else data.name
         name = data.name
         data = data.to_frame().reset_index()
         x = "index"
         y = name
+        fmt = "long"
     elif isinstance(data, pd.DataFrame):
         data = data.copy()
-
-    defaults = dict(markers=True,
-                    mec=None,
-                    alpha=0.7)
-    defaults.update(kwargs)
-    kwargs = defaults
-
-    theta, t_vals, y_vals = _compute_theta(x, y, data)
-    if ax is None:
-        if _enforce_polar:
-            ax = plt.subplot(projection="polar")
+        if x is None and y is None:
+            fmt = "wide"
         else:
-            # We trust that the caller did the right thing
-            ax = plt.gca()
+            fmt = "long"
 
-    if isinstance(ax, mpl.axes.Axes) and ax.name != "polar":
-        msg = ("Axes must use polar projection. Use one of the following "
-               "statements to ensure polar projection:\n"
-               "    plt.gca(polar=True)\n"
-               "    ax = plt.subplot(..., polar=True)\n"
-               "    fig, ax = plt.subplots(subplot_kw={'polar': True})\n"
-               )
-        raise ValueError(msg)
+    assert(fmt != "invalid")
+    return fmt, x, y, hue, style, data
 
-    # Create line plot. Keep track of newly added lines.
-    # Note: this is similar to data.plot.area(), but uses seaborn
-    # semantics. See also this feature request for areaplot():
-    # https://github.com/mwaskom/seaborn/issues/2410
-    lines_old = {id(l) for l in ax.lines}
 
-    # Long-form
-    ax = sns.lineplot(x=theta, y=y, hue=hue, size=size, style=style,
-                      data=data, ax=ax, **kwargs)
+def _adjust_polar_grid(ax, vals, labels, offset, direction, color):
+    ax.set_thetagrids(vals/np.pi*180, labels, color=color)
+    ax.set_theta_offset(np.pi/2+offset)
+    ax.set_theta_direction(direction)
+    ax.set_rlabel_position(0)
+    ax.set_xticklabels(ax.get_xticklabels(), horizontalalignment="center")
+    ax.tick_params(axis="y", which="both", labelsize=8)
+    ax.set_xlabel(None)
+    ax.set_ylabel(None)
+
+
+def _compute_theta(x, y, data):
+    if data is not None:
+        # If x is col name: get column, else: its a vector.
+        x = data.get(x,x)
+        y = data.get(y,y)
+    if x is None:
+        x = list(range(len(y if y is not None else data)))
+    x = pd.Series(x)
+    x_vals = x.unique()
+    n_axes = len(x_vals)
+    t_vals = np.linspace(0, 2*np.pi, n_axes, endpoint=False)
+    theta = x.map(dict(zip(x_vals, t_vals)))
+    return theta, t_vals, x_vals
+
+
+def _fill_and_close(ax, data, extent, lines_old,
+                    fill, fillalpha, fillcolor, kwargs):
+    # This is the fragile part and modify/add the artists.
+    # - Close the lines
+    # - Create a polygon patch if fill=True
 
     # If kwargs["label"] exists, the new line artist will carry that label.
     # Line2D.get_label() might be None, though it should always be a string.
@@ -141,10 +102,6 @@ def spiderplot(x=None, y=None, hue=None, size=None,
                  ((has_label and l.get_label()==label) or
                   (not has_label and l.get_label().startswith("_line")))]
 
-    # This is the fragile part and modify/add the artists.
-    # - Close the lines
-    # - Create a polygon patch if fill=True
-    # - Create a patch defined by fill if fill is a sequence
     from matplotlib.patches import Polygon
     patches = []
     for _,l in lines_new:
@@ -186,9 +143,89 @@ def spiderplot(x=None, y=None, hue=None, size=None,
             if len(ydata):
                 l.set_ydata(np.concatenate([ydata,[ydata[0]]]))
 
+
+def spiderplot(x=None, y=None, hue=None, size=None,
+               style=None, extent=None, data=None,
+               fill=True, fillalpha=0.25, fillcolor=None,
+               offset=0., direction=-1,
+               ax=None, _enforce_polar=True, **kwargs):
+    """
+    Create a spider chart with x defining the axes and y the values.
+
+    The function is based on seaborn's lineplot() using a polar projection.
+    The parameters indicated by (*) are specific to spiderplot(). The o
+    For a more detailed documentation of the function arguments, see:
+    https://seaborn.pydata.org/generated/seaborn.lineplot.html
+
+    Arguments:
+        x, y:           Vectors if data is None, else column keys of data.
+        hue:            Vector or key in data. Grouping variable that will
+                        produce lines with different colors.
+        size:           Vector or key in data. Grouping variable that will
+                        produce lines with different widths.
+        style:          Vector or key in data. Grouping variable that will
+                        produce lines with different dashes and/or markers.
+        extent (*):     Vector or constant or key in data. Variable with
+                        the error information per data point. Use this to
+                        indicate error bounds: y±error
+        data:           pandas.DataFrame or None. Data in long- or wide form.
+                        Can be None if the data is provided through x and y.
+        fill (*):       Fill area. Default: enabled
+        fillalpha (*):  Alpha value for fill polygon. Default: 0.25
+        fillcolor (*):  Color for fill polygon. Default: None (automatic)
+        offset (*):     Offset of the polar plot in degree.
+        direction (*):  Either -1 or +1. Plot CW:-1 or CCW:+1. Default: -1.
+        ax:             Pre-existing axes for the plot, if available.
+        **kwargs:       Additional arguments will be forwarded to
+                        sns.lineplot()
+
+    """
+    DEFAULTS = dict(markers=True,
+                    markeredgecolor=None,
+                    alpha=0.7)
+    defaults = DEFAULTS.copy()
+    defaults.update(kwargs)
+    kwargs = defaults
+
+    ax = _ensure_axes(ax=ax, enforce=_enforce_polar)
+    ret = _format_input_data(x=x, y=y, hue=hue, style=style, data=data)
+    fmt, x, y, hue, style, data = ret
+
+    theta, t_vals, x_vals = _compute_theta(x, y, data)
+
+    # Keep track of newly added lines.
+    lines_old = {id(l) for l in ax.lines}
+
+    # Create line plot.
+    # Note: this is similar to data.plot.area(), but uses seaborn
+    # semantics. See also this feature request for areaplot():
+    # https://github.com/mwaskom/seaborn/issues/2410
+
+    if fmt == "wide":
+        index_to_theta = dict(zip(data.index.values, theta))
+        pos_to_label = dict(zip(range(len(theta)), data.index.values))
+        data.index = data.index.map(index_to_theta)
+        ax = sns.lineplot(data=data, ax=ax, **kwargs)
+
+    elif fmt == "long":
+        ax = sns.lineplot(x=theta, y=y, hue=hue, size=size, style=style,
+                          data=data, ax=ax, **kwargs)
+
+    _fill_and_close(ax=ax,
+                    data=data,
+                    extent=extent,
+                    lines_old=lines_old,
+                    fill=fill,
+                    fillalpha=fillalpha,
+                    fillcolor=fillcolor,
+                    kwargs=kwargs)
+
     if _enforce_polar or False:
-        _adjust_polar_grid(ax=ax, vals=t_vals, labels=y_vals,
+        _adjust_polar_grid(ax=ax, vals=t_vals, labels=x_vals,
                            offset=offset, direction=direction, color="gray")
+    if fmt == "wide":
+        ax.set_xticklabels(list(pos_to_label.values()))
+
     return ax
 
 
@@ -217,10 +254,10 @@ def spiderplot_facet(data, row=None, col=None, hue=None,
     if legendtitle:
         grid.add_legend(title=legendtitle)
     for ax in grid.axes.ravel():
-        _, t_vals, y_vals = _compute_theta(x, y, data)
+        _, t_vals, x_vals = _compute_theta(x, y, data)
         _adjust_polar_grid(ax=ax,
                            vals=t_vals,
-                           labels=y_vals,
+                           labels=x_vals,
                            offset=offset,
                            direction=direction,
                            color="gray")
