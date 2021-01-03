@@ -62,30 +62,56 @@ def _format_input_data(x, y, hue, style, data):
     return fmt, x, y, hue, style, data
 
 
-def _adjust_polar_grid(ax, vals, labels, offset, direction, color):
-    ax.set_thetagrids(vals/np.pi*180, labels, color=color)
-    ax.set_theta_offset(np.pi/2+offset)
-    ax.set_theta_direction(direction)
-    ax.set_rlabel_position(0)
-    ax.set_xticklabels(ax.get_xticklabels(), horizontalalignment="center")
-    ax.tick_params(axis="y", which="both", labelsize=8)
-    ax.set_xlabel(None)
-    ax.set_ylabel(None)
-
-
-def _compute_theta(x, y, data):
+def _compute_theta(x, y, data,
+                   n_ticks_hint=None,
+                   is_categorical=True,
+                   is_closed=False):
+    """
+    Args:
+        x, y, data:     See spiderplot()
+        n_ticks_hint:   Number of ticks on the theta-axis.
+        is_categorical: Switch between categorical and numeric mode.
+        is_closed:      If start and end map to same point on (cyclic)
+                        theta-axis. Is ignored if is_categorical=False.
+    """
     if data is not None:
         # If x is col name: get column, else: its a vector.
         x = data.get(x,x)
         y = data.get(y,y)
     if x is None:
         x = list(range(len(y if y is not None else data)))
-    x = pd.Series(x)
-    x_vals = x.unique()
-    n_axes = len(x_vals)
-    t_vals = np.linspace(0, 2*np.pi, n_axes, endpoint=False)
-    theta = x.map(dict(zip(x_vals, t_vals)))
+    if is_categorical:
+        x = pd.Series(x)
+        x_vals = x.unique()
+        n_vals = len(x_vals)
+        t_vals = np.linspace(0, 2*np.pi, n_vals, endpoint=is_closed)
+        theta = x.map(dict(zip(x_vals, t_vals)))
+        if n_ticks_hint is not None:
+            step = int(max(np.round(len(x_vals)/n_ticks_hint), 1))
+            x_vals = x_vals[::step]
+            t_vals = t_vals[::step]
+    else:
+        x_min = x.min()
+        x_max = x.max()
+        theta = (x-x.min())/(x.max()-x.min())*2*np.pi
+        if n_ticks_hint is None:
+            n_ticks_hint = 8
+        t_vals = np.linspace(0, 2*np.pi, n_ticks_hint, endpoint=False)
+        x_vals = np.linspace(x.min(), x.max(), n_ticks_hint, endpoint=False)
     return theta, t_vals, x_vals
+
+
+def _adjust_polar_grid(ax, vals, labels,
+                       offset, direction,
+                       color):
+    ax.set_theta_offset(np.pi/2+offset)
+    ax.set_theta_direction(direction)
+    ax.set_thetagrids(vals/np.pi*180, labels, color=color)
+    ax.set_xticklabels(ax.get_xticklabels(), horizontalalignment="center")
+    ax.set_rlabel_position(0)
+    ax.tick_params(axis="y", which="both", labelsize=8)
+    ax.set_xlabel(None)
+    ax.set_ylabel(None)
 
 
 def _fill_and_close(ax, data, extent, lines_old,
@@ -148,6 +174,8 @@ def spiderplot(x=None, y=None, hue=None, size=None,
                style=None, extent=None, data=None,
                fill=True, fillalpha=0.25, fillcolor=None,
                offset=0., direction=-1,
+               n_ticks_hint=None,
+               is_categorical=True,
                ax=None, _enforce_polar=True, **kwargs):
     """
     Create a spider chart with x defining the axes and y the values.
@@ -191,8 +219,9 @@ def spiderplot(x=None, y=None, hue=None, size=None,
     ret = _format_input_data(x=x, y=y, hue=hue, style=style, data=data)
     fmt, x, y, hue, style, data = ret
 
-    theta, t_vals, x_vals = _compute_theta(x, y, data)
-
+    theta, t_vals, x_vals = _compute_theta(x=x, y=y, data=data,
+                                           n_ticks_hint=n_ticks_hint,
+                                           is_categorical=is_categorical)
     # Keep track of newly added lines.
     lines_old = {id(l) for l in ax.lines}
 
@@ -254,7 +283,9 @@ def spiderplot_facet(data, row=None, col=None, hue=None,
     if legendtitle:
         grid.add_legend(title=legendtitle)
     for ax in grid.axes.ravel():
-        _, t_vals, x_vals = _compute_theta(x, y, data)
+        _, t_vals, x_vals = _compute_theta(x, y, data,
+                                           is_categorical=is_categorical,
+                                           n_ticks_hint=n_ticks_hint)
         _adjust_polar_grid(ax=ax,
                            vals=t_vals,
                            labels=x_vals,
