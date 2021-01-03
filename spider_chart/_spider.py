@@ -185,7 +185,10 @@ def spiderplot(x=None, y=None, hue=None, size=None,
     For a more detailed documentation of the function arguments, see:
     https://seaborn.pydata.org/generated/seaborn.lineplot.html
 
-    Arguments:
+    spiderplot() makes sense most for categorical x-data, even though
+    numerical data can also be passed. See argument is_categorical.
+
+    Args:
         x, y:           Vectors if data is None, else column keys of data.
         hue:            Vector or key in data. Grouping variable that will
                         produce lines with different colors.
@@ -193,19 +196,28 @@ def spiderplot(x=None, y=None, hue=None, size=None,
                         produce lines with different widths.
         style:          Vector or key in data. Grouping variable that will
                         produce lines with different dashes and/or markers.
-        extent (*):     Vector or constant or key in data. Variable with
+        extent:     (*) Vector or constant or key in data. Variable with
                         the error information per data point. Use this to
                         indicate error bounds: y±error
         data:           pandas.DataFrame or None. Data in long- or wide form.
                         Can be None if the data is provided through x and y.
-        fill (*):       Fill area. Default: enabled
-        fillalpha (*):  Alpha value for fill polygon. Default: 0.25
-        fillcolor (*):  Color for fill polygon. Default: None (automatic)
-        offset (*):     Offset of the polar plot in degree.
-        direction (*):  Either -1 or +1. Plot CW:-1 or CCW:+1. Default: -1.
+        fill:       (*) Fill area. Default: enabled
+        fillalpha:  (*) Alpha value for fill polygon. Default: 0.25
+        fillcolor:  (*) Color for fill polygon. Default: None (automatic)
+        offset:     (*) Offset of the polar plot in degrees.
+        direction:  (*) Either -1 or +1. Plot CW:-1 or CCW:+1. Default: -1.
+        n_ticks_hint:   Number of ticks along the x-axis. By default,
+                    (*) spiderplot() uses all values for categorical data,
+                        and n=8 for numerical data.
+        is_categorical: Switch between categorical and numerical mode.
+                    (*) Determines how the x-data is interpreted and how the
+                        tick-locations are computed.
         ax:             Pre-existing axes for the plot, if available.
         **kwargs:       Additional arguments will be forwarded to
-                        sns.lineplot()
+                        sns.lineplot().
+
+    Returns:
+        ax:             The matplotlib axes containing the plot.
 
     """
     DEFAULTS = dict(markers=True,
@@ -251,7 +263,8 @@ def spiderplot(x=None, y=None, hue=None, size=None,
 
     if _enforce_polar or False:
         _adjust_polar_grid(ax=ax, vals=t_vals, labels=x_vals,
-                           offset=offset, direction=direction, color="gray")
+                           offset=offset, direction=direction,
+                           color="gray")
     if fmt == "wide":
         ax.set_xticklabels(list(pos_to_label.values()))
 
@@ -260,28 +273,49 @@ def spiderplot(x=None, y=None, hue=None, size=None,
 
 def spiderplot_facet(data, row=None, col=None, hue=None,
                      x=None, y=None, style=None,
-                     rlabel=None, legendtitle=None,
-                     fill=True, fillalpha=0.3, offset=0., direction=-1,
+                     sharex=False, sharey=False,
+                     fill=True, fillalpha=0.2,
+                     offset=0., direction=-1,
+                     n_ticks_hint=None,
+                     is_categorical=None,
                      **kwargs):
     """
+    Create an sns.FacetGrid using spiderplot().
 
-    Arguments:
-        kwargs:     Are forwarded to sns.FacetGrid(**kwargs)
+    The function is based on seaborn's FacetGrid(). For more details
+    see: https://seaborn.pydata.org/generated/seaborn.FacetGrid.html
 
-    See plotting_demo.py for a demonstration.
+    The use of sns.FacetGrid in combination with spiderplot() is a bit tricky.
+    In particular, dropping NaNs mess up the diagram.
+
+    Args:
+        data:           pandas.DataFrame or None. Data in long- or wide form.
+                        Can be None if the data is provided through x and y.
+        row, col, hue:  Keys in data. Variables that define subsets of the
+                        data, which will be drawn on separate facets in the
+                        grid.
+        sharex, sharey: Shares axes across figure. Disabled by default.
+        **kwargs:       Additional keyword arguments are forwarded to
+                        sns.FacetPlot().
+
+        x, y:
+        style:
+        fill,
+        fillalpha,
+        fillcolor:
+        offset:
+        direction:
+        ax:             Same as in spiderplot()
     """
     # Don't drop nans! This will completely mess up the diagram!
     grid = sns.FacetGrid(data=data, row=row, col=col, hue=hue, dropna=False,
                          subplot_kws=dict(projection="polar"), despine=False,
+                         sharex=sharex, sharey=sharey,
                          **kwargs)
     grid.map_dataframe(spiderplot, x=x, y=y, style=style,
                        fill=fill, fillalpha=fillalpha, offset=offset,
                        direction=direction, _enforce_polar=False)
-    rlabel = rlabel if rlabel else y
-    grid.set(xlabel=rlabel)
     grid.fig.subplots_adjust(wspace=.4, hspace=.4)
-    if legendtitle:
-        grid.add_legend(title=legendtitle)
     for ax in grid.axes.ravel():
         _, t_vals, x_vals = _compute_theta(x, y, data,
                                            is_categorical=is_categorical,
