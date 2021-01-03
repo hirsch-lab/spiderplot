@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 def _ensure_axes(ax, enforce):
     if ax is None:
         if enforce:
-            ax = plt.subplot(projection="polar")
+            _, ax = plt.subplots(subplot_kw={"polar": True})
         else:
             ax = plt.gca()
     if isinstance(ax, mpl.axes.Axes) and ax.name != "polar":
@@ -172,7 +172,7 @@ def _fill_and_close(ax, data, extent, lines_old,
 
 def spiderplot(x=None, y=None, hue=None, size=None,
                style=None, extent=None, data=None,
-               fill=True, fillalpha=0.25, fillcolor=None,
+               fill=True, fillalpha=0.2, fillcolor=None,
                offset=0., direction=-1,
                n_ticks_hint=None,
                is_categorical=True,
