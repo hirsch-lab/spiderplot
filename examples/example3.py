@@ -67,7 +67,6 @@ def example_long():
     ax.set_axisbelow(True)
     ax.set_title("Average daily max. temperature")
     plt.tight_layout()
-    save_figure("example3/climate_long_form.png")
 
 
 def example_wide():
@@ -80,7 +79,6 @@ def example_wide():
     ax.set_axisbelow(True)
     ax.set_title("Average daily max. temperature")
     plt.tight_layout()
-    save_figure("example3/climate_wide_form.png")
 
 
 def example_arrays():
@@ -103,7 +101,6 @@ def example_arrays():
     ax.set_axisbelow(True)
     ax.set_title("Average daily max. temperature")
     plt.tight_layout()
-    save_figure("example3/climate_array.png")
 
 
 def example_facet_long():
@@ -118,7 +115,6 @@ def example_facet_long():
     grid.add_legend(title="Cities",
                     bbox_to_anchor=(1.03, 1.0))
     grid.fig.subplots_adjust(wspace=.5, hspace=.5)
-    save_figure("example3/climate_facet_long.png")
 
 
 if __name__ == "__main__":
@@ -127,3 +123,21 @@ if __name__ == "__main__":
     example_long()
     example_facet_long()
     plt.show()
+
+
+def run(save=True, interactive=True):
+    sns.set(style="whitegrid")
+    example_arrays()
+    save_figure("out/example3/climate_array.png")
+    example_wide()
+    save_figure("out/example3/climate_wide_form.png")
+    example_long()
+    save_figure("out/example3/climate_long_form.png")
+    example_facet_long()
+    save_figure("out/example3/climate_facet_long.png")
+    if interactive:
+        plt.show()
+
+
+if __name__ == "__main__":
+    run(save=True, interactive=True)

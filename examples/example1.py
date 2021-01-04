@@ -25,10 +25,9 @@ def example_categorical():
     plt.figure()
     ax = spiderplot(x="x", y="y", data=df)
     ax.set_title("Example: categorical data")
-    save_figure("example1/categorical.png")
 
 
-def example_numeric():
+def example_numerical():
     """
     Example how to use non-categorical x-data. Note: A spider plot is not
     the same as a polar plot. Both use the polar coordinate system. But
@@ -49,10 +48,16 @@ def example_numeric():
               loc="upper left",
               bbox_to_anchor=(1.1, 1.0),
               borderaxespad=0.)
-    save_figure("example1/numerical.png")
+
+
+def run(save=True, interactive=True):
+    example_categorical()
+    save_figure("out/example1/categorical.png", enabled=save)
+    example_numerical()
+    save_figure("out/example1/numerical.png", enabled=save)
+    if interactive:
+        plt.show()
 
 
 if __name__ == "__main__":
-    example_categorical()
-    example_numeric()
-    plt.show()
+    run(save=True, interactive=True)

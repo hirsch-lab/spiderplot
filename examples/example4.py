@@ -35,7 +35,6 @@ def example_input1():
     ax4.set_title("pd.DataFrame(zip(x,y))", pad=30)
     plt.suptitle("Input modes")
     plt.tight_layout()
-    save_figure("example4/input_equivalence_1.png")
 
 
 def example_input2():
@@ -63,10 +62,9 @@ def example_input2():
     ax3.set_title("Wide-form data", pad=30)
     ax3.legend(loc="upper left", bbox_to_anchor=(1.2, 1.0), borderaxespad=0.)
     plt.tight_layout()
-    save_figure("example4/input_equivalence_2.png")
 
 
-def example3():
+def example_aggregation():
     k = 16
     n = 5
 
@@ -100,11 +98,19 @@ def example3():
     ax4.set_title("aggregation by sns.lineplot()", pad=30)
     plt.suptitle("Input modes")
     plt.tight_layout()
-    save_figure("example4/with_aggregation.png")
+
+
+def run(save=True, interactive=True):
+    sns.set(style="whitegrid")
+    example_input1()
+    save_figure("out/example4/input_equivalence_1.png")
+    example_input2()
+    save_figure("out/example4/input_equivalence_2.png")
+    example_aggregation()
+    save_figure("out/example4/with_aggregation.png")
+    if interactive:
+        plt.show()
 
 
 if __name__ == "__main__":
-    example_input1()
-    example_input2()
-    example3()
-    plt.show()
+    run(save=True, interactive=True)

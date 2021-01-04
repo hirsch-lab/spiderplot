@@ -11,8 +11,10 @@ def ensure_dir(path):
     return path.is_dir()
 
 
-def save_figure(filename, outdir="out/", fig=None, dpi=300):
-    path = Path(outdir)/filename
+def save_figure(path, fig=None, dpi=300, enabled=True):
+    if not enabled:
+        return
+    path = Path(path)
     if fig is not None:
         # Make the figure with fig the current figure
         plt.figure(fig.number)

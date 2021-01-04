@@ -61,7 +61,6 @@ def example_array():
                bbox_to_anchor=(1.4, 1.1),
                borderaxespad=0.)
     plt.tight_layout()
-    save_figure("example2/sample_array.png")
 
 
 def example_long():
@@ -74,7 +73,6 @@ def example_long():
                borderaxespad=0.)
     plt.gca().set_axisbelow(True)
     plt.tight_layout()
-    save_figure("example2/sample_long_form.png")
 
 
 def example_facet():
@@ -88,12 +86,19 @@ def example_facet():
                bbox_to_anchor=(1.5, 1.1),
                borderaxespad=0.)
     plt.tight_layout()
-    save_figure("example2/sample_facet.png")
+
+
+def run(save=True, interactive=True):
+    sns.set(style="whitegrid")
+    example_array()
+    save_figure("out/example2/sample_array.png", enabled=save)
+    example_long()
+    save_figure("out/example2/sample_long_form.png", enabled=save)
+    example_facet()
+    save_figure("out/example2/sample_facet.png", enabled=save)
+    if interactive:
+        plt.show()
 
 
 if __name__ == "__main__":
-    sns.set(style="whitegrid")
-    example_array()
-    example_long()
-    example_facet()
-    plt.show()
+    run(save=True, interactive=True)
