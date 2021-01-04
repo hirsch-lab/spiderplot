@@ -169,6 +169,11 @@ def _fill_and_close(ax, data, extent, lines_old,
             if len(ydata):
                 l.set_ydata(np.concatenate([ydata,[ydata[0]]]))
 
+    # Readjust axes limits to see the patches.
+    if draw_extent:
+        ax.relim()
+        ax.autoscale_view()
+
 
 def spiderplot(x=None, y=None, hue=None, size=None,
                style=None, extent=None, data=None,
@@ -181,9 +186,16 @@ def spiderplot(x=None, y=None, hue=None, size=None,
     Create a spider chart with x defining the axes and y the values.
 
     The function is based on seaborn's lineplot() using a polar projection.
-    The parameters indicated by (*) are specific to spiderplot(). The o
+    The parameters indicated by (*) are specific to spiderplot().
     For a more detailed documentation of the function arguments, see:
     https://seaborn.pydata.org/generated/seaborn.lineplot.html
+
+    Similar to seaborn functions, spiderplot accepts different data formats:
+        - array mode:       x, y and other parameters are np.arrays
+        - long-form mode:   x, y, hue, size, extent can be keys of data
+        - wide-form mode:   only argument data is required, where
+                            x: row indices; and y: table values (data.values),
+                            with the columns representing different categories.
 
     spiderplot() makes sense most for categorical x-data, even though
     numerical data can also be passed. See argument is_categorical.
@@ -192,6 +204,9 @@ def spiderplot(x=None, y=None, hue=None, size=None,
         x, y:           Vectors if data is None, else column keys of data.
         hue:            Vector or key in data. Grouping variable that will
                         produce lines with different colors.
+                        In array mode (data=None, x and y data arrays),
+                        hue="columns" will plot lines for each column; if
+                        hue=None, data aggregation is enabled.
         size:           Vector or key in data. Grouping variable that will
                         produce lines with different widths.
         style:          Vector or key in data. Grouping variable that will
@@ -220,9 +235,15 @@ def spiderplot(x=None, y=None, hue=None, size=None,
         ax:             The matplotlib axes containing the plot.
 
     """
+    # Override defaults from matplotlib: markeredgecolor is white by default,
+    # leading to a halo around the marker. Matplotlib's property aliases
+    # (mec for markeredgecolor) makes this a bit more complicated.
     DEFAULTS = dict(markers=True,
                     markeredgecolor=None,
                     alpha=0.7)
+    ALIASES = dict(mec="markeredgecolor")
+    for key, key_new in ALIASES.items():
+        kwargs[key_new] = kwargs.pop(key, DEFAULTS[key_new])
     defaults = DEFAULTS.copy()
     defaults.update(kwargs)
     kwargs = defaults
@@ -247,7 +268,6 @@ def spiderplot(x=None, y=None, hue=None, size=None,
         pos_to_label = dict(zip(range(len(theta)), data.index.values))
         data.index = data.index.map(index_to_theta)
         ax = sns.lineplot(data=data, ax=ax, **kwargs)
-
     elif fmt == "long":
         ax = sns.lineplot(x=theta, y=y, hue=hue, size=size, style=style,
                           data=data, ax=ax, **kwargs)
@@ -277,7 +297,7 @@ def spiderplot_facet(data, row=None, col=None, hue=None,
                      fill=True, fillalpha=0.2,
                      offset=0., direction=-1,
                      n_ticks_hint=None,
-                     is_categorical=None,
+                     is_categorical=True,
                      **kwargs):
     """
     Create an sns.FacetGrid using spiderplot().
