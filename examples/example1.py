@@ -20,7 +20,7 @@ def example_categorical():
     x = list(string.ascii_uppercase[:k])
     y = rnd.normal(loc=1, scale=1, size=k)
     s = pd.Series(y, index=x)
-    df = pd.DataFrame(zip(x,y), columns=["x", "y"])
+    df = pd.DataFrame(list(zip(x,y)), columns=["x", "y"])
 
     plt.figure()
     ax = spiderplot(x="x", y="y", data=df)

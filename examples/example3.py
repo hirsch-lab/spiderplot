@@ -115,8 +115,8 @@ def example_facet_long():
                             is_categorical=True,
                             col_wrap=2)
     grid.set_titles("City: {col_name}")
-    grid.add_legend(title="Cities", loc="upper right",
-                    bbox_to_anchor=(1.03, 1.0),)
+    grid.add_legend(title="Cities",
+                    bbox_to_anchor=(1.03, 1.0))
     grid.fig.subplots_adjust(wspace=.5, hspace=.5)
     save_figure("example3/climate_facet_long.png")
 

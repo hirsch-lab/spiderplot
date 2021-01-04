@@ -303,7 +303,7 @@ def spiderplot(x=None, y=None, hue=None, size=None,
     if fmt == "wide":
         index_to_theta = dict(zip(data.index.values, theta))
         pos_to_label = dict(zip(range(len(theta)), data.index.values))
-        data.index = data.index.map(index_to_theta)
+        data.index = data.index.map(lambda x: index_to_theta[x])
         ax = sns.lineplot(data=data, ax=ax, **kwargs)
     elif fmt == "long":
         ax = sns.lineplot(x=theta, y=y, hue=hue, size=size, style=style,

@@ -20,7 +20,7 @@ def example_input1():
     x = list(string.ascii_uppercase[:k])
     y = rnd.normal(loc=1, scale=1, size=k)
     s = pd.Series(y, index=x)
-    df = pd.DataFrame(zip(x,y), columns=["x", "y"])
+    df = pd.DataFrame(list(zip(x,y)), columns=["x", "y"])
     _, axes = plt.subplots(2, 2, figsize=(6,6),
                            subplot_kw={"polar": True})
     ((ax1, ax2), (ax3, ax4)) = axes
@@ -53,7 +53,8 @@ def example_input2():
     _, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12,3),
                                       subplot_kw={"polar": True})
     spiderplot(x=x, y=y, ax=ax1, hue="columns", fill=True)
-    spiderplot(x="x", y="y", hue="category", data=df, ax=ax2, fill=True, marker="o")
+    spiderplot(x="x", y="y", hue="category", data=df,
+               ax=ax2, fill=True, marker="o")
     spiderplot(data=df_wide, ax=ax3, fill=True)
     ax1.set_title("Array data", pad=30)
     ax1.legend(loc="upper left", bbox_to_anchor=(1.2, 1.0), borderaxespad=0.)
@@ -74,7 +75,9 @@ def example3():
     y = rnd.normal(loc=1, scale=0.1, size=(k, n))
     means = y.mean(axis=1)
     stds = y.std(axis=1)
-    df = pd.DataFrame(zip(means, stds), columns=["mean", "std"], index=x)
+    df = pd.DataFrame(list(zip(means, stds)),
+                      columns=["mean", "std"],
+                      index=x)
     df.index.name = "x"
     df = df.reset_index()
 
