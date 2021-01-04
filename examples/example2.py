@@ -10,7 +10,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from spider_chart import spiderplot, spiderplot_facet
+from spiderplot import spiderplot, spiderplot_facet
 from commons import save_figure
 
 
