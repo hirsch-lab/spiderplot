@@ -8,6 +8,7 @@ Examples demonstrating the support for different data formats:
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from pathlib import Path
 import matplotlib.pyplot as plt
 
 from spiderplot import spiderplot, spiderplot_facet
@@ -88,14 +89,15 @@ def example_facet():
     plt.tight_layout()
 
 
-def run(save=True, interactive=True):
+def run(save=True, interactive=True, outdir="out/"):
+    outdir = Path(outdir)
     sns.set(style="whitegrid")
     example_array()
-    save_figure("out/example2/sample_array.png", enabled=save)
+    save_figure(outdir/"example2/sample_array.png", enabled=save)
     example_long()
-    save_figure("out/example2/sample_long_form.png", enabled=save)
+    save_figure(outdir/"example2/sample_long_form.png", enabled=save)
     example_facet()
-    save_figure("out/example2/sample_facet.png", enabled=save)
+    save_figure(outdir/"example2/sample_facet.png", enabled=save)
     if interactive:
         plt.show()
 

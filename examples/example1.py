@@ -5,6 +5,7 @@ Examples demonstrating the support for categorical and numerical x-data.
 import string
 import numpy as np
 import pandas as pd
+from pathlib import Path
 import matplotlib.pyplot as plt
 
 from spiderplot import spiderplot, spiderplot_facet
@@ -50,11 +51,12 @@ def example_numerical():
               borderaxespad=0.)
 
 
-def run(save=True, interactive=True):
+def run(save=True, interactive=True, outdir="out/"):
+    outdir = Path(outdir)
     example_categorical()
-    save_figure("out/example1/categorical.png", enabled=save)
+    save_figure(outdir / "example1/categorical.png", enabled=save)
     example_numerical()
-    save_figure("out/example1/numerical.png", enabled=save)
+    save_figure(outdir / "out/example1/numerical.png", enabled=save)
     if interactive:
         plt.show()
 

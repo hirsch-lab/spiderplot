@@ -117,24 +117,17 @@ def example_facet_long():
     grid.fig.subplots_adjust(wspace=.5, hspace=.5)
 
 
-if __name__ == "__main__":
-    example_arrays()
-    example_wide()
-    example_long()
-    example_facet_long()
-    plt.show()
-
-
-def run(save=True, interactive=True):
+def run(save=True, interactive=True, outdir="out/"):
+    outdir = Path(outdir)
     sns.set(style="whitegrid")
     example_arrays()
-    save_figure("out/example3/climate_array.png")
+    save_figure(outdir/"example3/climate_array.png")
     example_wide()
-    save_figure("out/example3/climate_wide_form.png")
+    save_figure(outdir/"example3/climate_wide_form.png")
     example_long()
-    save_figure("out/example3/climate_long_form.png")
+    save_figure(outdir/"example3/climate_long_form.png")
     example_facet_long()
-    save_figure("out/example3/climate_facet_long.png")
+    save_figure(outdir/"example3/climate_facet_long.png")
     if interactive:
         plt.show()
 

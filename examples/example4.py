@@ -5,6 +5,7 @@ import string
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from pathlib import Path
 import matplotlib.pyplot as plt
 
 from spiderplot import spiderplot, spiderplot_facet
@@ -100,14 +101,15 @@ def example_aggregation():
     plt.tight_layout()
 
 
-def run(save=True, interactive=True):
+def run(save=True, interactive=True, outdir="out/"):
+    outdir = Path(outdir)
     sns.set(style="whitegrid")
     example_input1()
-    save_figure("out/example4/input_equivalence_1.png")
+    save_figure(outdir/"example4/input_equivalence_1.png")
     example_input2()
-    save_figure("out/example4/input_equivalence_2.png")
+    save_figure(outdir/"example4/input_equivalence_2.png")
     example_aggregation()
-    save_figure("out/example4/with_aggregation.png")
+    save_figure(outdir/"example4/with_aggregation.png")
     if interactive:
         plt.show()
 
