@@ -1,8 +1,8 @@
 # spiderplot
 
-Create 2D spider charts using seaborn.
+Python package to create 2D spider charts.
 
-A [spider chart](https://en.wikipedia.org/wiki/Radar_chart) is a type of relatinal plot. The implementation is based on seaborn's [lineplot()](https://seaborn.pydata.org/generated/seaborn.lineplot.html) using a polar coordinate system.
+The [spider chart](https://en.wikipedia.org/wiki/Radar_chart) is a type of relational graph $f(x,y)$. The implementation is based on seaborn's [lineplot()](https://seaborn.pydata.org/generated/seaborn.lineplot.html) using a polar coordinate system.
 
 
 
