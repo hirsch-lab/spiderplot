@@ -83,8 +83,8 @@ def demo_aggregate():
     # ax = spiderplot(x="x", y="value", hue="dataset", style="dataset", data=df,
     #                 fill=False, markers=False, dashes=False, legend=False,
     #                 palette=["gray" for i in range(10)], alpha=0.3)
-    ax = spiderplot(y=means, extent=stds, color="red",
-                    fillcolor="gray", fill=False, label="mean±std")
+    ax = spiderplot(y=means, extent=stds, color="red", fillcolor="gray",
+                    fill=False, rref=0, label="mean ± std")
     ax.set_rlim([-1.4,1.4])
     ax.legend(loc="upper right",
                bbox_to_anchor=(1.4, 1.),
