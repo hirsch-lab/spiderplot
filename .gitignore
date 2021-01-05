@@ -1,0 +1,10 @@
+out/
+dist/
+build/
+__pycache__/
+*.egg-info
+*.so
+MANIFEST
+
+#
+.ipynb*

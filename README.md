@@ -1,2 +1,126 @@
 # spider-chart
-Utility to create spider charts
+
+Create 2D spider charts using seaborn.
+
+A [spider chart](https://en.wikipedia.org/wiki/Radar_chart) is a type of relatinal plot. The implementation is based on seaborn's [lineplot()](https://seaborn.pydata.org/generated/seaborn.lineplot.html) using a polar coordinate system.
+
+
+
+## Installation
+
+The package can be installed via pip:
+
+```nonepip install spiderplot```
+
+Use the following commands for a quick verification of the installation.
+
+```bash
+python -c "import spiderplot; print(spiderplot.__version__)"
+python -c "import spiderplot; spiderplot.demo_pair()"
+```
+
+
+## Usage
+
+
+
+Similar to seaborn functions, spiderplot accepts different data formats:
+
+- *array mode*:       x, y and other parameters are np.arrays
+- *long-form mode*:   x, y, hue, size, extent can be keys of data
+- *wide-form mode*:   only argument data is required, where
+                      x: row indices; and y: table values (data.values),
+                      with the columns representing different categories.
+
+See [this](https://seaborn.pydata.org/tutorial/data_structure.html) about data structures in seaborn. 
+
+To print the help text of the function:
+
+```bash
+python -c "import spiderplot as sp; help(sp.spiderplot)"
+python -c "import spiderplot as sp; help(sp.spiderplot_facet)"
+```
+
+See the [examples](https://github.com/hirsch-lab/spider-chart/tree/main/examples) for further usage information. 
+
+### Basic example
+
+```python
+import seaborn as sns
+import spiderplot as sp
+import matplotlib.pyplot as plt
+sns.set_style("whitegrid")
+# Load some demo data.
+df = sp.demo.generate_data(mode="long-form", d=1)
+# Create spider plot.
+ax = sp.spiderplot(x="x", y="value", hue="dataset", legend=False,
+                   data=df, palette="husl", rref=0)
+# Adjust limits in radial direction.
+ax.set_rlim([-1.4,1.4])
+plt.show()
+```
+
+<p align="center">
+<img src="data/demo_single.png" width="75%" alt="Result of the basic example" </p>
+
+
+### Multiple plots
+
+```python
+df = sp.demo.generate_data_pair(mode="long-form")
+sns.set_style("whitegrid")
+ax = sp.spiderplot(x="x", y="value", hue="dataset", style="dataset",
+                   data=df, dashes=False, palette="husl", rref=0)
+ax.set_rlim([-1.4,1.4])
+ax.legend(loc="upper right",
+           bbox_to_anchor=(1.4, 1.),
+           borderaxespad=0.)
+plt.tight_layout()
+plt.show()
+```
+
+<p align="center">
+<img src="data/demo_pair.png" width="75%" alt="Stratify multiple datasets" </p>
+
+
+### Data aggregation
+
+```python
+df = sp.demo.generate_data(mode="long-form", n=24, d=10)
+means = df.groupby("x")["value"].mean()
+stds = df.groupby("x")["value"].std()
+sns.set_style("whitegrid")
+ax = sp.spiderplot(y=means, extent=stds, color="red", fillcolor="gray",
+                   fill=False, rref=0, label="mean ± std")
+ax.set_rlim([-1.4,1.4])
+ax.legend(loc="upper right",
+           bbox_to_anchor=(1.4, 1.),
+           borderaxespad=0.)
+plt.tight_layout()
+plt.show()
+```
+
+<p align="center">
+<img src="data/demo_aggregate.png" width="75%" alt="Aggregate multiple datasets" </p>
+
+
+## Requirements
+
+```none
+Python>=3.6
+numpy
+pandas>=0.22
+matplotlib>=3.0
+seaborn>=0.9
+```
+
+
+## Project setup
+
+```bash
+git clone https://github.com/hirsch-lab/spider-chart.git
+cd spider-chart
+pip install -r requirements.txt
+# Run examples
+./examples/run_all.py
+```

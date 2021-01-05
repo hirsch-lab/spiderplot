@@ -1,0 +1,6 @@
+# Install with pip:
+#   pip install -r requirements.txt
+numpy
+pandas>=0.22
+matplotlib>=3.0
+seaborn>=0.9
