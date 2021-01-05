@@ -216,6 +216,7 @@ def _fill_and_close(ax, data, extent, lines_old,
 def spiderplot(x=None, y=None, hue=None, size=None,
                style=None, extent=None, data=None,
                fill=True, fillalpha=0.2, fillcolor=None,
+               rref=None, rref_kws=None,
                offset=0., direction=-1,
                n_ticks_hint=None,
                is_categorical=True,
@@ -257,6 +258,9 @@ def spiderplot(x=None, y=None, hue=None, size=None,
         fill:       (*) Fill area. Default: enabled
         fillalpha:  (*) Alpha value for fill polygon. Default: 0.25
         fillcolor:  (*) Color for fill polygon. Default: None (automatic)
+        rref,       (*) Highlight the iso-line at value rref. The keywords
+        rref_kws:       rref_kws can be used to adjust the appearance of
+                        this reference line.
         offset:     (*) Offset of the polar plot in degrees.
         direction:  (*) Either -1 or +1. Plot CW:-1 or CCW:+1. Default: -1.
         n_ticks_hint:   Number of ticks along the x-axis. By default,
@@ -326,6 +330,10 @@ def spiderplot(x=None, y=None, hue=None, size=None,
     if fmt == "wide":
         ax.set_xticklabels(list(pos_to_label.values()))
 
+    if rref is not None:
+        rref_kws = {"color":"k", "lw": 0.5} if rref_kws is None else rref_kws
+        t = np.linspace(0, 2*np.pi, 100)
+        ax.plot(t, np.ones_like(t)*rref, **rref_kws)
     return ax
 
 
@@ -333,6 +341,7 @@ def spiderplot_facet(data, row=None, col=None, hue=None,
                      x=None, y=None, style=None,
                      sharex=False, sharey=False,
                      fill=True, fillalpha=0.2,
+                     rref=None, rref_kws=None,
                      offset=0., direction=-1,
                      n_ticks_hint=None,
                      is_categorical=True,
@@ -356,13 +365,15 @@ def spiderplot_facet(data, row=None, col=None, hue=None,
         **kwargs:       Additional keyword arguments are forwarded to
                         sns.FacetPlot().
 
-        x, y:
-        style:
+        x, y,
+        style,
         fill,
         fillalpha,
-        fillcolor:
-        offset:
-        direction:
+        fillcolor,
+        rref,
+        rref_kws,
+        offset,
+        direction,
         ax:             Same as in spiderplot()
     """
     # Don't drop nans! This will completely mess up the diagram!
@@ -371,8 +382,10 @@ def spiderplot_facet(data, row=None, col=None, hue=None,
                          sharex=sharex, sharey=sharey,
                          **kwargs)
     grid.map_dataframe(spiderplot, x=x, y=y, style=style,
-                       fill=fill, fillalpha=fillalpha, offset=offset,
-                       direction=direction, _enforce_polar=False)
+                       fill=fill, fillalpha=fillalpha,
+                       rref=rref, rref_kws=rref_kws,
+                       offset=offset, direction=direction,
+                       _enforce_polar=False)
     grid.fig.subplots_adjust(wspace=.4, hspace=.4)
     for ax in grid.axes.ravel():
         _, t_vals, x_vals = _compute_theta(x, y, data,
