@@ -39,15 +39,18 @@ def _format_input_data(x, y, hue, style, data):
             msg = "In array mode (data=None), argument y must be set."
             raise ValueError(msg)
         if x is None:
-            x = pd.RangeIndex(len(y))
+            if isinstance(y, (pd.Series, pd.DataFrame)):
+                x = y.index.copy()
+            else:
+                x = pd.RangeIndex(len(y))
         else:
             x = pd.Index(x)
         data = pd.DataFrame(y).set_index(x)
-        data.index.name = "x"
+        data.index.name = "_x"
         data.columns.name = "category"
-        data = data.reset_index().melt(value_name="value", id_vars="x")
-        x = "x"
-        y = "value"
+        data = data.reset_index().melt(value_name="_value", id_vars="_x")
+        x = "_x"
+        y = "_value"
         # The case where y.shape[1]=d>1 can be resolved in two ways:
         #   1) hue="category": Each column represents a separate category,
         #      represented as differently colored lines in the plot
@@ -64,6 +67,7 @@ def _format_input_data(x, y, hue, style, data):
             hue = "category"
         fmt = "long"
     elif isinstance(data, pd.Series):
+        data = data.copy()
         data.name = "value" if data.name is None else data.name
         name = data.name
         data = data.to_frame().reset_index()
@@ -157,9 +161,6 @@ def _fill_and_close(ax, data, extent, lines_old,
         xy2[:,1] -= extent
         xy = np.concatenate([xy1, xy2[::-1]], axis=0)
         _draw_poly(xy=xy, color=color, alpha=alpha, ax=ax)
-
-    if not fill and extent is None:
-        return
 
     draw_fill = fill
     draw_extent = extent is not None
