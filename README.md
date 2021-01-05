@@ -1,4 +1,4 @@
-# spider-chart
+# spiderplot
 
 Create 2D spider charts using seaborn.
 
