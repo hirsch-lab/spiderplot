@@ -123,4 +123,6 @@ cd spider-chart
 pip install -r requirements.txt
 # Run examples
 ./examples/run_all.py
+# Build package
+python setup.py sdist bdist_wheel
 ```
