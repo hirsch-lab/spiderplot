@@ -82,25 +82,6 @@ plt.show()
 <p align="center">
 <img src="data/demo_pair.png" width="75%" alt="Stratify multiple datasets" </p>
 
-### Aggregation plots
-```python
-df = generate_data(mode="long-form", n=24, d=10)
-means = df.groupby("x")["value"].mean()
-stds = df.groupby("x")["value"].std()
-sns.set_style("whitegrid")
-# ax = spiderplot(x="x", y="value", hue="dataset", style="dataset", data=df,
-#                 fill=False, markers=False, dashes=False, legend=False,
-#                 palette=["gray" for i in range(10)], alpha=0.3)
-ax = spiderplot(y=means, extent=stds, color="red", fillcolor="gray",
-                fill=False, rref=0, label="mean ± std")
-ax.set_rlim([-1.4,1.4])
-ax.legend(loc="upper right",
-           bbox_to_anchor=(1.4, 1.),
-           borderaxespad=0.)
-plt.tight_layout()
-plt.show()
-
-```
 
 ### Data aggregation
 
@@ -120,7 +101,7 @@ plt.show()
 ```
 
 <p align="center">
-<img src="data/demo_aggregate.png" width="75%" alt="Stratify multiple datasets" </p>
+<img src="data/demo_aggregate.png" width="75%" alt="Aggregate multiple datasets" </p>
 
 
 ## Requirements
@@ -134,7 +115,7 @@ seaborn>=0.9
 ```
 
 
-## Setup 
+## Project setup
 
 ```bash
 git clone https://github.com/hirsch-lab/spider-chart.git
