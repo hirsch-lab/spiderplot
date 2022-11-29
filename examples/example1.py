@@ -56,7 +56,7 @@ def run(save=True, interactive=True, outdir="out/"):
     example_categorical()
     save_figure(outdir / "example1/categorical.png", enabled=save)
     example_numerical()
-    save_figure(outdir / "out/example1/numerical.png", enabled=save)
+    save_figure(outdir / "example1/numerical.png", enabled=save)
     if interactive:
         plt.show()
 
