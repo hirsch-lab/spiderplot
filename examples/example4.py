@@ -89,9 +89,9 @@ def example_aggregation():
     spiderplot(x=x, y=means, extent=stds, fill=False, ax=ax2)
     # Pass mean xy-data and extent as table.
     spiderplot(x="x", y="mean", extent="std", data=df, fill=False, ax=ax3)
-    # Pass non-aggregated xy-data, using the aggregation capabilities
+    # Pass non-aggregated xy-data, using the aggregation capabilities
     # of sns.lineplot()). Note that the "closure" is missing here because
-    # sns.lineplot() is unaware of the cyclic nature of a spiderplot().
+    # sns.lineplot() is unaware of the cyclic nature of a spiderplot().
     spiderplot(x=x, y=y, fill=False, ax=ax4)
     ax1.set_title("mean±std (array mode: y)", pad=30)
     ax2.set_title("mean+std (array mode: xy)", pad=30)

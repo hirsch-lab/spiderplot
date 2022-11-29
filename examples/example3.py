@@ -113,7 +113,8 @@ def example_facet_long():
                             col_wrap=2)
     grid.set_titles("City: {col_name}")
     grid.add_legend(title="Cities",
-                    bbox_to_anchor=(1.03, 1.0))
+                    loc="upper left",
+                    bbox_to_anchor=(0.9, 0.995))
     grid.fig.subplots_adjust(wspace=.5, hspace=.5)
 
 
