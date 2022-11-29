@@ -13,16 +13,15 @@ def _ensure_axes(ax, enforce):
         fig = plt.gcf()
         if fig.axes:
             ax = plt.gca()
-    if isinstance(ax, mpl.axes.Axes) and ax.name == "polar":
+    if isinstance(ax, mpl.axes.Axes) and type(ax).__name__.startswith("Polar"):
         return ax
     else:
         if enforce:
-            ax = plt.gca(polar=True)
+            ax = plt.subplot(polar=True)
             return ax
         else:
             msg = ("Axes must use polar projection. Use one of the following "
                    "statements to ensure polar projection:\n"
-                   "    plt.gca(polar=True)\n"
                    "    ax = plt.subplot(..., polar=True)\n"
                    "    fig, ax = plt.subplots(subplot_kw={'polar': True})\n"
                    )
