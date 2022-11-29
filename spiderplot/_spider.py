@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 import warnings
 
+class SpiderWarning(Warning): pass
+
+
 
 def _ensure_axes(ax, enforce):
     if ax is None:
@@ -13,16 +16,15 @@ def _ensure_axes(ax, enforce):
         fig = plt.gcf()
         if fig.axes:
             ax = plt.gca()
-    if isinstance(ax, mpl.axes.Axes) and ax.name == "polar":
+    if isinstance(ax, mpl.axes.Axes) and type(ax).__name__.startswith("Polar"):
         return ax
     else:
         if enforce:
-            ax = plt.gca(polar=True)
+            ax = plt.subplot(polar=True)
             return ax
         else:
             msg = ("Axes must use polar projection. Use one of the following "
                    "statements to ensure polar projection:\n"
-                   "    plt.gca(polar=True)\n"
                    "    ax = plt.subplot(..., polar=True)\n"
                    "    fig, ax = plt.subplots(subplot_kw={'polar': True})\n"
                    )
@@ -58,7 +60,7 @@ def _format_input_data(x, y, hue, style, data):
         #      Before plotting, the data is aggregated along axis=1. A single
         #      line is plotted by sns.lineplot ± uncertainty bounds.
         # Problem: Choice 2) is easy by setting hue=None. However, choice 1)
-        # cannot be made by the user, because hue should be "category", which
+        # cannot be made by the user, because hue should be "category", which
         # is an arbitrarily chosen, internal variable name.
         # Resolution: introduce magic setting hue="columns", which applies
         # only to this array mode. I think this is most consistent with
@@ -140,7 +142,7 @@ def _adjust_polar_grid(ax, vals, labels,
 def _fill_and_close(ax, data, extent, lines_old,
                     fill, fillalpha, fillcolor, kwargs):
     """
-    This is the fragile part and modify/add the artists.
+    This is the fragile part. Modify/add the artists:
     - Close the lines
     - Create a polygon patch if fill=True
     """
@@ -166,13 +168,38 @@ def _fill_and_close(ax, data, extent, lines_old,
     draw_extent = extent is not None
     close_lines = True
 
+    # Select all lines that have been added by sns.lineplot(). Unfortunately,
+    # seaborn does not return any handles to lines it has created. Thus,
+    # we need to reverse-engineer part of the logic of sns.lineplot()...
+    #
+    # WARNING: If ever the below code needs fixing, check out the examples
+    # of lineplot and see how seaborn adds lines to plots:
+    #   https://seaborn.pydata.org/generated/seaborn.lineplot.html
+    #
+    #       flights = sns.load_dataset("flights")
+    #       ax = sns.lineplot(data=flights, x="year", y="passengers")
+    #       plt.show()
+    #       print([ (l.get_label(),l, len(l.get_xydata())) for l in ax.lines ])
+    #
     # If kwargs["label"] exists, the new line artist will carry that label.
     # Line2D.get_label() might be None, though it should always be a string.
+    #
+    # Historical note: In earlier versions, seaborn created lines with labels
+    # that started with "_line". Current versions use labels starting with
+    # "_child". As this is internal logic, it is better to avoid checking
+    # for the labels, except they were set explicitly.
     has_label, label = "label" in kwargs, kwargs.get("label", None)
     lines_new = [(l.get_label(),l) for l in ax.lines if
                  id(l) not in lines_old and
                  ((has_label and l.get_label()==label) or
-                  (not has_label and l.get_label().startswith("_line")))]
+                  (not has_label and len(l.get_xdata())>0))]
+
+    if len(lines_new) == 0:
+        msg = ("Failed to retrieve the lines of the spiderplot. It is "
+               "likely that the aesthetics of the resulting plot are "
+               "dissatisfactory. Please report the issue: "
+               "https://github.com/hirsch-lab/spiderplot")
+        warnings.warn(msg, SpiderWarning, stacklevel=2)
 
     patches = []
     for _,l in lines_new:
@@ -188,7 +215,7 @@ def _fill_and_close(ax, data, extent, lines_old,
         if draw_extent:
             if mask.any():
                 msg = "Extent is skipped for line containing nan data."
-                warnings.warn(msg)
+                warnings.warn(msg, SpiderWarning)
             else:
                 _draw_extent(xy=xyp, extent=extent, data=data,
                              color=color, alpha=alpha, ax=ax)

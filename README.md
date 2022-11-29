@@ -10,7 +10,9 @@ The [spider chart](https://en.wikipedia.org/wiki/Radar_chart) is a type of relat
 
 The package can be installed via pip:
 
-```nonepip install spiderplot```
+```none
+pip install spiderplot
+```
 
 Use the following commands for a quick verification of the installation.
 
@@ -26,24 +28,29 @@ python -c "import spiderplot; spiderplot.demo_pair()"
 
 Similar to seaborn functions, spiderplot accepts different data formats:
 
-- *array mode*:       x, y and other parameters are np.arrays
-- *long-form mode*:   x, y, hue, size, extent can be keys of data
-- *wide-form mode*:   only argument data is required, where
-                      x: row indices; and y: table values (data.values),
-                      with the columns representing different categories.
+- *array mode*: `spiderplot(x=x, y=y)`  
+     with `x`, `y` (and other parameters) being sequences
+- *long-form mode*: `spiderplot(x=x, y=y, ..., data=data)`  
+     with `data` being a [DataFrame](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html) and the other parameters (x, y, hue, size, extent) being keys of `data`
+- *wide-form mode*: `spiderplot(data)`  
+                  with `data` being a [DataFrame](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html), using the following mapping:  
+                  `x` are the row indices (`data.index`)  
+                  `y` are the table values (`data.values`)
+                  every column of `data` represents a different category of the plot.
 
-See [this](https://seaborn.pydata.org/tutorial/data_structure.html) about data structures in seaborn. 
+See [this tutorial](https://seaborn.pydata.org/tutorial/data_structure.html) about data structures in seaborn for further details.
 
 To print the help text of the function:
 
-```bash
-python -c "import spiderplot as sp; help(sp.spiderplot)"
-python -c "import spiderplot as sp; help(sp.spiderplot_facet)"
+```python
+import spiderplot as sp
+help(sp.spiderplot)
+help(sp.spiderplot_facet)
 ```
 
 See the [examples](https://github.com/hirsch-lab/spider-chart/tree/main/examples) for further usage information. 
 
-### Basic example
+### Basic example
 
 ```python
 import seaborn as sns
@@ -64,7 +71,7 @@ plt.show()
 <img src="data/demo_single.png" width="75%" alt="Result of the basic example" </p>
 
 
-### Multiple plots
+### Multiple plots
 
 ```python
 df = sp.demo.generate_data_pair(mode="long-form")
