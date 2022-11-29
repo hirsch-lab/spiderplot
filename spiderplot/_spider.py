@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 import warnings
 
+class SpiderWarning(Warning): pass
+
+
 
 def _ensure_axes(ax, enforce):
     if ax is None:
@@ -187,7 +190,7 @@ def _fill_and_close(ax, data, extent, lines_old,
         if draw_extent:
             if mask.any():
                 msg = "Extent is skipped for line containing nan data."
-                warnings.warn(msg)
+                warnings.warn(msg, SpiderWarning)
             else:
                 _draw_extent(xy=xyp, extent=extent, data=data,
                              color=color, alpha=alpha, ax=ax)
